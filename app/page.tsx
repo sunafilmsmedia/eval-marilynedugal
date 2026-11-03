@@ -7,7 +7,6 @@ import Hero from "@/components/Hero";
 import TopLogos from "@/components/TopLogos";
 import QualificationForm from "@/components/QualificationForm";
 import LoadingScreen from "@/components/LoadingScreen";
-import PreRevealScreen from "@/components/PreRevealScreen";
 import NoSellScreen from "@/components/NoSellScreen";
 import ResultsScreen from "@/components/results/ResultsScreen";
 import { trackStep } from "@/lib/track";
@@ -15,7 +14,7 @@ import type { AnalyzeResponse, Answers } from "@/lib/types";
 
 const HeroBackground = dynamic(() => import("@/components/HeroBackground"), { ssr: false });
 
-type Stage = "hero" | "form" | "loading" | "preReveal" | "results" | "noSell";
+type Stage = "hero" | "form" | "loading" | "results" | "noSell";
 
 const MIN_LOADING_MS = 2000;
 
@@ -23,7 +22,6 @@ export default function Home() {
   const [stage, setStage] = useState<Stage>("hero");
   const [answers, setAnswers] = useState<Answers | null>(null);
   const [analyze, setAnalyze] = useState<AnalyzeResponse | null>(null);
-  const [revealChoice, setRevealChoice] = useState<"yes" | "scoreOnly">("scoreOnly");
 
   const handleFormComplete = async (finalAnswers: Answers) => {
     trackStep("analyse");
@@ -51,27 +49,13 @@ export default function Home() {
     setTimeout(() => {
       if (result) {
         setAnalyze(result);
-        // On passe par l'écran de pré-révélation avant les vrais résultats
-        trackStep("pre_reveal");
-        setStage("preReveal");
+        trackStep("resultats", "avec_contact");
+        setStage("results");
         if (typeof window !== "undefined") window.scrollTo(0, 0);
       } else {
         setStage("form");
       }
     }, remaining);
-  };
-
-  const revealResults = (choice: "yes" | "scoreOnly") => {
-    trackStep("resultats", choice === "yes" ? "avec_contact" : "sans_contact");
-    setRevealChoice(choice);
-    setStage("results");
-    if (typeof window !== "undefined") window.scrollTo(0, 0);
-  };
-
-  const requestFullAnalysis = () => {
-    trackStep("resultats", "avec_contact");
-    setRevealChoice("yes");
-    if (typeof window !== "undefined") window.scrollTo(0, 0);
   };
 
   const handleNoSell = (partialAnswers: Answers) => {
@@ -84,13 +68,11 @@ export default function Home() {
   const restart = () => {
     setAnswers(null);
     setAnalyze(null);
-    setRevealChoice("scoreOnly");
     setStage("hero");
     if (typeof window !== "undefined") window.scrollTo(0, 0);
   };
 
-  const showChrome =
-    stage === "hero" || stage === "preReveal" || stage === "results" || stage === "noSell";
+  const showChrome = stage === "hero" || stage === "results" || stage === "noSell";
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -129,20 +111,9 @@ export default function Home() {
             <LoadingScreen />
           </motion.div>
         )}
-        {stage === "preReveal" && analyze && (
-          <motion.div key="preReveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-            <PreRevealScreen onContinue={revealResults} />
-          </motion.div>
-        )}
         {stage === "results" && analyze && answers && (
           <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <ResultsScreen
-              analyze={analyze}
-              answers={answers}
-              revealChoice={revealChoice}
-              onRestart={restart}
-              onRequestFull={requestFullAnalysis}
-            />
+            <ResultsScreen analyze={analyze} answers={answers} onRestart={restart} />
           </motion.div>
         )}
         {stage === "noSell" && answers && (
