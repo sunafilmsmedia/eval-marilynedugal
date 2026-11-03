@@ -82,10 +82,10 @@ body {
   text-wrap: balance;
 }
 
-/* Titre d'affichage — gros bold majuscules large */
+/* Titre d'affichage — gros majuscules large, poids plus fin */
 @utility display-title {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.005em;
   line-height: 1.02;

@@ -20,12 +20,12 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
-// Police d'affichage lourde — titres en gros bold majuscules (branding Groupe Guillemette).
+// Police d'affichage — titres en majuscules, poids plus fin (bleu marine/or MDB).
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["700", "800", "900"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
