@@ -2,9 +2,8 @@
 
 import Script from "next/script";
 
-// Pixel Meta — défini UNIQUEMENT par déploiement via NEXT_PUBLIC_META_PIXEL_ID.
-// Vide = aucun script Meta injecté. (Pas de pixel en dur : chaque client a le sien.)
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "";
+// Pixel Meta — « Pixel de Marilyne » par défaut, surchargeable via NEXT_PUBLIC_META_PIXEL_ID.
+export const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1630502671683127";
 
 declare global {
   interface Window {
@@ -69,7 +68,8 @@ export interface AdvancedMatchingInfo {
 // subséquents sur la session — incluant l'event Lead qui suit.
 export function trackLeadWithMatching(
   user: AdvancedMatchingInfo,
-  eventParams?: Record<string, unknown>
+  eventParams?: Record<string, unknown>,
+  eventId?: string
 ) {
   if (typeof window === "undefined" || !window.fbq) return;
 
@@ -80,5 +80,6 @@ export function trackLeadWithMatching(
   if (user.lastName) userData.ln = user.lastName.trim().toLowerCase();
 
   window.fbq("init", PIXEL_ID, userData);
-  window.fbq("track", "Lead", eventParams);
+  // eventID identique à celui envoyé par la CAPI serveur → Meta déduplique.
+  window.fbq("track", "Lead", eventParams, eventId ? { eventID: eventId } : undefined);
 }
